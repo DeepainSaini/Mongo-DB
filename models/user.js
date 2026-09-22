@@ -50,6 +50,17 @@ userSchema.methods.getCart = function() {
   return this.populate('cart.items.productId');
 }
 
+userSchema.methods.deleteCartItem = function(prodId) {
+
+  const cart = this.cart;
+  const updatedCart = cart.items.filter((i) => {
+    return i.productId.toString() !== prodId.toString()
+  })
+
+  this.cart = updatedCart;
+  return this.save();
+}
+
 module.exports = mongoose.model('User',userSchema);
 
 // const {ObjectId} = require('mongodb');
