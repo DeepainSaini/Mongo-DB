@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
+const Order = require('../models/order');
 
 const userSchema = new Schema({
 
@@ -59,6 +60,32 @@ userSchema.methods.deleteCartItem = function(prodId) {
 
   this.cart = updatedCart;
   return this.save();
+}
+
+userSchema.methods.addOrder = function() {
+
+   return this.getCart().then((user) => {
+    const products = user.cart.items.map((i) => {
+      return {quantity: i.quantity, product: i.productId.toObject()};
+    });
+    const order = new Order({
+      products: products,
+      user: {
+        name: this.name,
+        userId: this._id
+      }
+    })
+    return order.save();
+  })
+  .then((result) => {
+    this.cart = {items: []};
+    this.save();
+  });
+}
+
+userSchema.methods.getOrders = function() {
+
+  return Order.find({'user.userId': this._id}).lean();
 }
 
 module.exports = mongoose.model('User',userSchema);
